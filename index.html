@@ -238,7 +238,8 @@ div.tocify {
 </div>
 
 
-<p>Here is a link to my data wrangling script: <a href="https://github.com/matthiasaulbach/IODS-final/blob/master/create_goal.R" class="uri">https://github.com/matthiasaulbach/IODS-final/blob/master/create_goal.R</a></p>
+<p>Here is a link to my data wrangling script:</p>
+<p><a href="https://github.com/matthiasaulbach/IODS-final/blob/master/create_goal.R" class="uri">https://github.com/matthiasaulbach/IODS-final/blob/master/create_goal.R</a></p>
 <div id="abstract" class="section level1">
 <h1>Abstract</h1>
 <p>In a dataset of goals set by depression patients in sessions with different therapists, I analyzed relations between therapists, goal types, goal process and depression symptoms. While neither goal types therapist seem to be predictive of goal progress, therapists do seem to have a differential impact on depression symptom scores.</p>
@@ -1752,47 +1753,47 @@ summary(model_ther_pa)</code></pre>
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
-## -0.7815  -0.5615  -0.5287  -0.2857   2.5373  
+## -0.7815  -0.6335  -0.5100  -0.3124   2.4676  
 ## 
 ## Coefficients:
-##               Estimate Std. Error z value Pr(&gt;|z|)  
-## (Intercept)    -2.6391     1.0351  -2.550   0.0108 *
-## therapistBD     1.2528     1.2199   1.027   0.3044  
-## therapistCM     1.3863     1.1802   1.175   0.2401  
-## therapistGF    -0.5390     1.4536  -0.371   0.7108  
-## therapistHD     1.4805     1.0583   1.399   0.1618  
-## therapistJB     0.6931     1.2051   0.575   0.5652  
-## therapistJL     0.8714     1.1130   0.783   0.4337  
-## therapistJS     0.8650     1.0644   0.813   0.4164  
-## therapistLB     0.7419     1.1239   0.660   0.5092  
-## therapistLG     0.4855     1.0758   0.451   0.6518  
-## therapistLP     1.6094     1.1588   1.389   0.1649  
-## therapistMS   -15.9270  1423.3568  -0.011   0.9911  
-## therapistNB     0.9651     1.2113   0.797   0.4256  
-## therapistPB   -15.9270  2465.3259  -0.006   0.9948  
-## therapistPDF  -15.9270  1630.6600  -0.010   0.9922  
-## therapistRB   -15.9270  2465.3259  -0.006   0.9948  
-## therapistSC   -15.9270  2465.3259  -0.006   0.9948  
-## therapistSH   -15.9270  2662.8563  -0.006   0.9952  
+##               Estimate Std. Error z value Pr(&gt;|z|)   
+## (Intercept)    -2.7081     1.0328  -2.622  0.00874 **
+## therapistBD     1.3218     1.2179   1.085  0.27781   
+## therapistCM     1.6094     1.1832   1.360  0.17376   
+## therapistGF    -0.2877     1.4549  -0.198  0.84325   
+## therapistHD     1.5629     1.0553   1.481  0.13862   
+## therapistJB     0.4568     1.2725   0.359  0.71964   
+## therapistJL     1.4684     1.0881   1.350  0.17717   
+## therapistJS     0.7877     1.0649   0.740  0.45952   
+## therapistLB     0.7340     1.1377   0.645  0.51885   
+## therapistLG     0.6109     1.0709   0.570  0.56837   
+## therapistLP     1.6784     1.1568   1.451  0.14679   
+## therapistMS   -15.8580  1537.4010  -0.010  0.99177   
+## therapistNB     1.2040     1.1714   1.028  0.30405   
+## therapistPB   -15.8580  2174.2131  -0.007  0.99418   
+## therapistPDF  -15.8580  1630.6600  -0.010  0.99224   
+## therapistRB   -15.8580  2465.3259  -0.006  0.99487   
+## therapistSC   -15.8580  2465.3259  -0.006  0.99487   
+## therapistSH   -15.8580  2306.1012  -0.007  0.99451   
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
-##     Null deviance: 533.70  on 661  degrees of freedom
-## Residual deviance: 498.07  on 644  degrees of freedom
-## AIC: 534.07
+##     Null deviance: 544.53  on 661  degrees of freedom
+## Residual deviance: 505.36  on 644  degrees of freedom
+## AIC: 541.36
 ## 
 ## Number of Fisher Scoring iterations: 17</code></pre>
 <pre class="r"><code>coef(model_ther_pa)</code></pre>
 <pre><code>##  (Intercept)  therapistBD  therapistCM  therapistGF  therapistHD 
-##   -2.6390573    1.2527630    1.3862944   -0.5389965    1.4805469 
+##   -2.7080502    1.3217558    1.6094379   -0.2876821    1.5629179 
 ##  therapistJB  therapistJL  therapistJS  therapistLB  therapistLG 
-##    0.6931472    0.8713954    0.8649974    0.7419373    0.4855078 
+##    0.4567584    1.4683593    0.7876734    0.7339692    0.6109091 
 ##  therapistLP  therapistMS  therapistNB  therapistPB therapistPDF 
-##    1.6094379  -15.9270112    0.9650809  -15.9270112  -15.9270112 
+##    1.6784308  -15.8580183    1.2039728  -15.8580183  -15.8580183 
 ##  therapistRB  therapistSC  therapistSH 
-##  -15.9270112  -15.9270112  -15.9270112</code></pre>
+##  -15.8580183  -15.8580183  -15.8580183</code></pre>
 <p>This indicates that we can’t determine whether a PA goal is set when knowing the therapist. None of the therapist factor levels reaches significance.</p>
 <p>I’m not including crosstabs for the other goals types as well. As it would be quite a lot to go through, I will not analyze those here.</p>
 </div>

@@ -14,7 +14,9 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-Here is a link to my data wrangling script: https://github.com/matthiasaulbach/IODS-final/blob/master/create_goal.R
+Here is a link to my data wrangling script:
+
+https://github.com/matthiasaulbach/IODS-final/blob/master/create_goal.R
 
 # Abstract
 In a dataset of goals set by depression patients in sessions with different therapists, I analyzed relations between therapists, goal types, goal process and depression symptoms. While neither goal types therapist seem to be predictive of goal progress, therapists do seem to have a differential impact on depression symptom scores. 
