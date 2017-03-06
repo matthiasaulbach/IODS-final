@@ -1,0 +1,372 @@
+---
+title: "Final Assignment"
+author: "Matthias Aulbach"
+email: "matthias.aulbach@helsinki.fi"
+date: "08.03.2017"
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+Here is a link to my data wrangling script: LINK!!!!
+
+# Abstract
+In a dataset of goals set by depression patients in sessions with different therapists, I analyzed relations between therapists, goal types, goal process and depression symptoms. While neither goal types therapist seem to be predictive of goal progress, therapists do seem to have a differential impact on depression symptom scores. 
+
+# Description of the dataset
+Thi dataset comes from an intervention study with depression patients. Each patient had several sessions with a therapist in each of which they set three goals. These goals are the focus of my analysis: every case represents a goal (not a patient).
+The goal content was coded into binary variables (since some goals belong to more than one category).
+In addition, we have here the standardized goal progress and an entry and end score for depression symptoms. I also created a variable that indicates changes in depression scores and a binary variable that tells us whether or not a patient was above the cutoff value of the depression questionnaire at the end of the treatment (see the data wrangling script).
+Therapists are coded into a categorical variable.
+
+# Research questions:
+1. Does the kind of goal that has been set have an influence on a) goal progress and b) symptom change? My hypothesis is that goal content does make a difference, i.e. some kinds of goals lead to more progress and larger symptom change.
+2. Do the therapists differ in their effectiveness regarding a) goal progress and b) symptom change? Also for therapists, I expect differences since surely, not all therapists are equally qualified.
+3. Does it depend on the therapist which kind of goal is chosen? Again, my hypothesis is that therapists have "favourites" regarding goal content, i.e. that there are differences in goal content depending on the therapist.
+
+
+# Getting the data file and summary
+```{r getting data file}
+Goals <- read.table("Goals")
+colnames(Goals)
+str(Goals)
+summary(Goals)
+```
+
+The goals set most often are physical activity related, from the social domain (such as meeting with friends), related to the home or somehow connected to the treatment. Goals related to alcohol consumption or other addictive behaviors are very rare.
+PHQ (i.e. depression) scores range from 9 (surprising, since 10 is the cutof value) to 26, which is extremely high. On average, patients had a score of 17, indicating a "moderately severe depression".
+At the end of treatment, average PHQ scores were at 8.5. which is under the cutoff for a clinically significant depression. On average, PHQ scores decreased by 8.4 points. However, 261 patients (more than a quarter) were still considered as having a depression at the end of treatment.
+
+## Relations between variables
+Let's take a look at relations between some of our variables.
+```{r relations1}
+reg1 <- lm(phqentry ~ phqend, data = Goals)
+summary(reg1)
+plot(Goals$phqentry, Goals$phqend)
+abline(reg1)
+```
+
+"phqentry"" and "phqend"" are correlated. This was to be expected when assuming that most patients' score goes down a certain amount of points. Someone who has a very severe depression in the beginning still has more symptoms in the end while a mild depression in the beginning might be cured after therapy.
+
+```{r relations2}
+reg2 <- lm(phqentry ~ zgoalprogress, data=Goals)
+summary(reg2)
+plot(Goals$phqentry, Goals$zgoalprogress)
+abline(reg2)
+```
+
+"phqentry"" and goal progress are not correlated. No matter how depressed a person was at the outset, the goal progress is more or less the same.
+
+```{r relations4}
+reg4 <- lm(zgoalprogress ~ phqend, data = Goals)
+summary(reg4)
+plot(Goals$zgoalprogress, Goals$phqend)
+abline(reg4)
+```
+
+"phqend"" and goal progress are not correlated. Obviously, making progress on one's goals doesn't help cure depressive symptoms.
+
+```{r relations5}
+reg5 <- lm(zgoalprogress ~ phq_change, data = Goals)
+summary(reg5)
+plot(Goals$zgoalprogress, Goals$phq_change)
+abline(reg5)
+```
+
+Logically, "phq_change"" is not correlated with goal progress either (since phq_change is made up of phqentry and phqend).
+
+What's also interesting for a start is how often the goals types were set. Let's see a summary:
+
+```{r summary goals}
+summary(Goals[1:18])
+```
+
+# Data Analysis
+## 1. a) Relation between goal content and goal progress
+First, I want to investigate whether goals differ in regard to the progress that patients make in them. To study this, I will plot the different goals against "zgoalprogress"" (Note that "zgoalprogress" is a standardized value).
+
+```{r plots goalprogress_goals}
+boxplot(Goals$zgoalprogress ~ Goals$pagol, main = "Physical Activity")
+boxplot(Goals$zgoalprogress ~ Goals$dietgol, main = "Diet")
+boxplot(Goals$zgoalprogress ~ Goals$alcogol, main = "Alcohol")
+boxplot(Goals$zgoalprogress ~ Goals$addictgol, main = "Addiction")
+boxplot(Goals$zgoalprogress ~ Goals$sleepgol, main = "Sleep")
+boxplot(Goals$zgoalprogress ~ Goals$relaxgol, main = "Relax")
+boxplot(Goals$zgoalprogress ~ Goals$socgol, main = "Social")
+boxplot(Goals$zgoalprogress ~ Goals$emogol, main = "Emotional")
+boxplot(Goals$zgoalprogress ~ Goals$coggoal, main = "Cognitive")
+boxplot(Goals$zgoalprogress ~ Goals$workgoal, main = "Work")
+boxplot(Goals$zgoalprogress ~ Goals$homegoal, main = "Home")
+boxplot(Goals$zgoalprogress ~ Goals$hobgoal, main = "Hobby")
+boxplot(Goals$zgoalprogress ~ Goals$hygmdgol, main = "Hygiene")
+boxplot(Goals$zgoalprogress ~ Goals$treatgol, main = "Treatment")
+boxplot(Goals$zgoalprogress ~ Goals$badgoal, main = "Bad")
+boxplot(Goals$zgoalprogress ~ Goals$assgoal, main = "Ass")
+boxplot(Goals$zgoalprogress ~ Goals$reenggol, main = "Reeng")
+boxplot(Goals$zgoalprogress ~ Goals$unclearg, main = "Unclear")
+```
+
+It seems like the kind of goal doesn't affect the goal progress. The only kind of goal which does seem to have some kind of influence are those that were categorized as "bad".
+Goals categorized as bad seem to be connected to somewhat lower goal progress.
+Let's test this with a regression model that tries to predict goal progress with goals content. Note that I'm adding all the different goal categories in the same model.
+
+```{r regression goal progress goal type}
+model_goals <- lm(zgoalprogress ~ pagol+dietgol+alcogol+addictgol+sleepgol+relaxgol+socgol+emogol+coggoal+workgoal+homegoal+hobgoal+hygmdgol+treatgol+badgoal+assgoal+reenggol+unclearg, data = Goals)
+summary(model_goals) 
+```
+
+Here we see that dietgol, alcogol, and badgoal have a significant influence on goal progress! While diet-related goals and goals categorized as "bad" seem to lead to lower goal progress, addiction goals seem to be easier to implement: they are connected to better goal progress (however, we should note that addiction goals were very rare).
+In total, the adjusted R-squared is just 0.017 - very low, indicating that the kinds of goals are poor predictors of goal progress. 
+
+## 1.b) Goal content and PHQ scores at end of treatment
+
+Now obviously, our main concern is not goal progress but rather that patients reduce their depression symptoms. Therefore, let's see which kind of goal is associated with the lowest scores at the end of the treatment.
+To get an idea of that, I will plot goals against depression scores at the end of treatment (phqend). Lower scores mean fewer/less intense symptoms, i.e. are more desirable.
+
+```{r plots phqend, goals}
+boxplot(Goals$phqend ~ Goals$pagol, main = "Physical Activity")
+boxplot(Goals$phqend ~ Goals$dietgol, main = "Diet")
+boxplot(Goals$phqend ~ Goals$alcogol, main = "Alcohol")
+boxplot(Goals$phqend ~ Goals$addictgol, main = "Addiction")
+boxplot(Goals$phqend ~ Goals$sleepgol, main = "Sleep")
+boxplot(Goals$phqend ~ Goals$relaxgol, main = "Relax")
+boxplot(Goals$phqend ~ Goals$socgol, main = "Social")
+boxplot(Goals$phqend ~ Goals$emogol, main = "Emotional")
+boxplot(Goals$phqend ~ Goals$coggoal, main = "Cognitive")
+boxplot(Goals$phqend ~ Goals$workgoal, main = "Work")
+boxplot(Goals$phqend ~ Goals$homegoal, main = "Home")
+boxplot(Goals$phqend ~ Goals$hobgoal, main = "Hobby")
+boxplot(Goals$phqend ~ Goals$hygmdgol, main = "Hygiene")
+boxplot(Goals$phqend ~ Goals$treatgol, main = "Treatment")
+boxplot(Goals$phqend ~ Goals$badgoal, main = "Bad")
+boxplot(Goals$phqend ~ Goals$assgoal, main = "Ass")
+boxplot(Goals$phqend ~ Goals$reenggol, main = "Reeng")
+boxplot(Goals$phqend ~ Goals$unclearg, main = "Unclear")
+```
+
+It seems like the kind of goal doesn't affect the strength of depression symptoms at the end of the treatment.
+Let's run a regression model predicting PHQ at the end of treatment with kinds of goals to see if there is any meaningful predictive power.
+
+```{r regression goals phqend}
+model_goals_phq <- lm (phqend ~ pagol+dietgol+alcogol+addictgol+sleepgol+relaxgol+socgol+emogol+coggoal+workgoal+homegoal+hobgoal+hygmdgol+treatgol+badgoal+assgoal+reenggol+unclearg, data = Goals)
+summary(model_goals_phq)
+```
+
+None of the estimates for the different goals is significant. Goal content does not seem important for change in depression symptoms. However, those goals that were not to be categorized or were worded in an unclear way ("unclearg"), seem to have a negative impact: patients who set goals of that kind tend to have higher PHQ end scores.
+
+As for goal progress, PHQ scores at the end of the treatment are very poorly predicted by goal content: the adjusted R square is 0.010.
+
+Since the end score of PHQ is correlated to the entry score (as we have seen earlier), let's rather look at change scores: How does goal content influence changes in depressive symptoms? Again, I run a regression model.
+
+```{r r regression goals phqchange}
+model_goals_phqchange <- lm (phq_change ~ pagol+dietgol+alcogol+addictgol+sleepgol+relaxgol+socgol+emogol+coggoal+workgoal+homegoal+hobgoal+hygmdgol+treatgol+badgoal+assgoal+reenggol+unclearg, data = Goals)
+summary(model_goals_phqchange)
+```
+
+Again, the whole model does very poorly: adjusted R square is just 0.008.
+
+"emogol" and "badgoal" have significant influence in the model. Let's take another look at their boxplots.
+
+```{r boxplots1}
+boxplot(phq_change ~ emogol, data = Goals, main = "Emotional")
+boxplot(phq_change ~ badgoal, data = Goals, main = "Bad")
+```
+
+Judging from the boxplots, emogol and badgoal seem to lead to higher changes in PHQ scores, i.e. better outcomes. Setting emotion-related goals creates larger changes in PHQ scores. Surprisingly, setting "bad" goals seems to have a similar effect.
+
+We might argue that the precise score at the end of the treatment or the change in symptoms are not most interesting but rather whether a patient is still depressed or not. Therefore, let's look at some crosstable between goal content and the binary variable "depr" that indicates whether or not a patient was still above the cutoff value in the depression questionnaire.
+
+```{r depr goals crosstables}
+library(gmodels)
+CrossTable (Goals$depr, Goals$pagol)
+CrossTable (Goals$depr, Goals$socgol)
+```
+
+Let's take a closer look at the crosstable for PA goals. In total, 14.6% of goals are PA goals and 31.5% of patients are still depressed after the treatment. Of those who do have PA goals 43.8% are still depressed. This does not shed good light on physical activity goals.
+The other category that has been used quite frequently were social goals, so let's take a closer look at that as well. 32% of those with a social goal were still depressed after treatment which is pretty much the average of 31.5%. 
+
+I'm including ouput (and optinally code) for the other goal categories, for reasons of completeness. I chose to look at PA and social goals more closely because they were set quite often.
+
+```{r crosstables less frequent goals}
+CrossTable (Goals$depr, Goals$dietgol)
+CrossTable (Goals$depr, Goals$alcogol)
+CrossTable (Goals$depr, Goals$addictgol)
+CrossTable (Goals$depr, Goals$sleepgol)
+CrossTable (Goals$depr, Goals$relaxgol)
+CrossTable (Goals$depr, Goals$emogol)
+CrossTable (Goals$depr, Goals$coggoal)
+CrossTable (Goals$depr, Goals$workgoal)
+CrossTable (Goals$depr, Goals$homegoal)
+CrossTable (Goals$depr, Goals$hobgoal)
+CrossTable (Goals$depr, Goals$hygmdgol)
+CrossTable (Goals$depr, Goals$treatgol)
+CrossTable (Goals$depr, Goals$badgoal)
+CrossTable (Goals$depr, Goals$assgoal)
+```
+
+## 2.a) Influence of therapists on goal progress
+Next, we want to know how therapists differ in regard to their patients' goal progress. For that, we create another regression model, this time with goal progress predicted by therapist.
+
+```{r regression therapist goalpr}
+model_therapist <- lm(zgoalprogress ~ therapist, data=Goals)
+summary(model_therapist)
+plot(Goals$therapist, Goals$zgoalprogress, col = topo.colors(18), las =2)
+```
+
+"GF", "LB", and "PB" show significant values in the regression model, indicating that they differ somehow from the rest. Judging from the boxplot, they seem to be doing a good job: the mean goalprogress of their clients is pretty high.
+
+The model including therapists is not really better at predicting goal progress than the goal content was: adjusted R square: 0.022. 
+
+## 2.b) Therapists and depression scores 
+### Influence of therapist on depression scores at the end of treatment
+Of course we want to know whether some therapists are better than others in bringing patients' depression scores down. To find this out, we run a regression with "therapist" as the predictor for "phqend", i.e. the depression scores after the treatment.
+
+```{r regression therapist phqend}
+tapply(Goals$phqend, Goals$therapist, mean)
+boxplot(Goals$phqend ~ Goals$therapist, col = topo.colors(18), las =2)
+model_ther_depr <- lm(phqend ~ therapist, data = Goals)
+summary(model_ther_depr)
+```
+
+This model seems to do a better job at predicting: adjusted R square is 0.205. This is much better than the other models we have looked at so far!
+
+The model tells us that "BD", "JL", and "RB" predict PHQ scores significantly and "LB", "LP", "MS", "NB", and "PB" highly significantly.
+
+In the boxplot we can nicely see that "BD", "NB", "PB", and "RB" achieve better results: their patients have lower depression scores at the end of treatment.
+"LB", "LP", and "MS" seem to be less successful: their clients' depression scores at the end of treatment are relatively high.
+
+I want to validate my model. Therefore, I want to see some diagnostic plots.
+
+```{r model validation plots}
+plot(model_ther_depr, which = c(1, 2, 5), par(mfrow = c(2, 2)))
+```
+
+The graph that plots fitted values against residuals doesn't look good: The variation of residuals gets larger with larger fitted values, indicating heteroscedasticity. This should be due to the different amount of goals for each therapist and therefore different variance in the respective PHQ end scores. 
+Also the q-q-plot is questionable: in the higher quantiles, I deviates from the straight line, indicating that something is wrong with our distribution.
+The plot of leverage vs residuals indicates that there are not influential outliers distorting our analysis in that sense.
+
+Let's try and make a few predictions for imaginary new patients ("a"-"e").
+
+```{r}
+new_patients <- c("a"= "MS", "b"= "LB", "c"="LP", "d" = "BD", "e" = "JL")
+new_data <- data.frame(therapist =new_patients)
+predict(model_ther_depr, newdata=new_data)
+```
+
+In summary, the modeling suffers severely from an extremely uneven distribution of cases over the therapists.
+
+Since I want to know about differences between therapists in regard to PHQ end scores, I will run an ANOVA with "therapist" as the independent variable.
+
+```{r ANOVA}
+aov1 <- aov(phqend ~ therapist, data = Goals)
+summary (aov1)
+```
+
+This indicates that there are significant differences between therapists in regard to PHQ end score.
+
+### PHQ change instead of final PHQ scores
+Not only is it important to see what the scores at the end of the treatment are but also how much they have *changed* (especially since - as we have seen earlier - entry and end scores correlate).
+Therefore, I run the same analysis again using change scores instead of end scores.
+
+```{r therapist change}
+tapply(Goals$phq_change, Goals$therapist, mean) 
+boxplot(Goals$phq_change ~ Goals$therapist, col = topo.colors(18), las =2)
+```
+
+All therapists decrease their clients' PHQ scores (all therapists' phq_change scores are > 0). Now that's good news!
+
+```{r regression therapist change}
+model_ther_change <- lm(phq_change ~ therapist, data = Goals)
+summary(model_ther_change)
+```
+
+Here we can see that "CM", "HD", "JB", "JS", "NB", and "PB" become significant in the model.
+The boxplot shows that all of them stick out positively: They achieve rather high change scores.
+What is interesting is that these are not the same therapists that create low phq end scores. This should be due to the fact that entry scores and end scores are correlated: some therapists might have gotten "hard cases" and thus are not able to achieve low end scores. The phq_change variable avoids this problem.
+However, the statistical significance might be due to the very different amount of sessions for each therapist. 
+
+As for the end scores, I'm interested in differences between the therapists: ANOVA time.
+
+```{r anova therapist change}
+aov2 <- aov(phq_change ~ therapist, data = Goals)
+summary (aov2)
+```
+
+As with the end scores, we can see that therapists do differ significantly from each other in regard to their changing PHQ scores.
+
+
+## Depression yes/no as an outcome
+The last thing in regard to depression scores is to see how many of certain therapists' clients are still depressed after treatment.
+
+```{r}
+gmodels::CrossTable (Goals$therapist, Goals$depr)
+ther_depr <- table(Goals$therapist, Goals$depr)
+ther_depr <- prop.table(ther_depr, 1)
+plot(ther_depr, type = "h", main = "% Depressed patients after treatment", xlab="therapist", ylab="Depression yes/no", col = c("35", "50"))
+```
+
+The barplot shows the percentage of depressed patients after treatment separately for each therapist, indicating that "LB", "LP", and "JL" leave a rather large shar of their patients with a depression at the end of treatment. The precise numbers are available from the crosstable.
+
+## 3. Influence of therapists on goal setting
+Now I want to know whether therapists differ in regard to the goals that their clients set. For this, let's first look at some tables that show how often different therapists' patients have certain goals.
+First goal category is physical activity (PA).
+
+```{r crosstable ther PAgoal}
+ther_pa <- CrossTable(Goals$therapist, Goals$pagol)
+library(ggplot2)
+ther_pagoal <- table(Goals$therapist, Goals$pagol)
+ther_pagoal <- prop.table(ther_pagoal, 1)
+plot(ther_pagoal, type = "h", main = "% PA goals by therapist", xlab="therapist", ylab="share of PA goals", col = c("35", "50"), las =2)
+```
+
+This crosstable shows the total amounts of physical activity goals set by different therapists as well as their relative percentages. It's a good overview about how much therapists differ in setting certain goals. What makes interpretation difficult is the fact that some therapists have very few goals in total. We can't really draw inferences there. 
+However, we can see that about 15% of all goals are PA goals. "MS"'s patients, for example, have never set a PA goal, even though there were 27 chances to do so. "HD" on the other hand seems to support PA goals: 24% of 144 goals were related to physical activity.
+The graph illustrates the differences in therapists setting different goals.
+
+
+Next, I want to predict whether a certain goal will be chosen based on the therapist for each kind of goal independently. I do this by using a general linear model.
+
+```{r glm therapist goal}
+n <- nrow(Goals)
+ind <- sample(n, size=n*0.8)
+train <- Goals[ind,]
+test <- Goals[-ind,]
+
+model_ther_pa <- glm(pagol ~ therapist, family = binomial(link='logit'), data = train)
+summary(model_ther_pa)
+coef(model_ther_pa)
+```
+
+This indicates that we can't determine whether a PA goal is set when knowing the therapist. None of the therapist factor levels reaches significance.
+
+I'm not including crosstabs for the other goals types as well. As it would be quite a lot to go through, I will not analyze those here.
+
+```{r crosstabs goals therap, include = FALSE}
+CrossTable (Goals$therapist, Goals$dietgol)
+CrossTable (Goals$therapist, Goals$alcogol)
+CrossTable (Goals$therapist, Goals$addictgol)
+CrossTable (Goals$therapist, Goals$sleepgol)
+CrossTable (Goals$therapist, Goals$relaxgol)
+CrossTable (Goals$therapist, Goals$socgol)
+CrossTable (Goals$therapist, Goals$emogol)
+CrossTable (Goals$therapist, Goals$coggoal)
+CrossTable (Goals$therapist, Goals$workgoal)
+CrossTable (Goals$therapist, Goals$homegoal)
+CrossTable (Goals$therapist, Goals$hobgoal)
+CrossTable (Goals$therapist, Goals$hygmdgol)
+CrossTable (Goals$therapist, Goals$treatgol)
+CrossTable (Goals$therapist, Goals$badgoal)
+CrossTable (Goals$therapist, Goals$assgoal)
+```
+
+# Conclusion
+In these analyses I looked for connections between therapists, goal content, goal progress, and depression symptoms, using crosstables, correlations, and regression models. Unlike expected, I did not find strong conncetions between these variables. However, I did find differences between therapists in regard to the goals that their patients set and in their likelihood of bringing their patients' depression scores under the questionnaire's cut-off value, i.e. successfully treating their condition.
+There are certain problems with this dataset: 
+1. There are many binary variables as the goal categories were coded as binaries. It was not possible to put them into one categorical variable as some goals belong to more than one variable. Working with that many binary variables is somewhat tricky and much information is lost. (I'd love to learn more about that)
+2. The number of cases was extremely different for the therapists and goals. This often leads to nonsense results. Re-analyses with only a subset of data might make sense.
